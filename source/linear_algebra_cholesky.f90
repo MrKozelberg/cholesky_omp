@@ -1,20 +1,21 @@
 program linear_algebra_cholesky
    use omp_lib
    implicit none
-   integer, parameter :: m = 10
+   integer, parameter :: m = 1
    integer :: n
    real(4), allocatable :: a(:,:), l(:,:), l_t(:,:), id(:,:)
    real(4), allocatable :: b(:,:), x(:,:), y(:)
    integer :: i, j, ip
    real(8) :: time, s
    ! Reading n
-   read(*, *) n
+   read(*,*) n
    ! Id matrix
    allocate(id(n,n))
    ForAll(i = 1:n, j = 1:n) id(i,j) = (i/j)*(j/i)
    ! Initialization of the matrix A
    allocate(a(n,n))
-   call random_number(a)   
+   a(:,:) = 1.0
+   ! call random_number(a)   
    a = (a + transpose(a)) / 2 + n * id
    ! Matrix b initialization
    allocate(b(n,m))
@@ -30,7 +31,7 @@ program linear_algebra_cholesky
          s = s - dprod(l(i,ip), l(i,ip))
       end do
       l(i,i) = sqrt(s)
-      !$omp parallel do private(j,ip,s) shared(l,i) schedule(static, (n-(j+1))/12)
+      !$omp parallel do private(j,ip,s) shared(l,i) schedule(static)
       do  j = i + 1, n
          s = l(j,i)
          do  ip = 1, i-1
@@ -67,7 +68,13 @@ program linear_algebra_cholesky
    !$omp end parallel do
    ! Time
    time = omp_get_wtime() - time
+   write(*,*) 
    write(*,*) n, time
+   ! Answer
+   write(*,*)
+   do i = 1, n
+      write(*,*) x(i,:)
+   end do
    deallocate(id)
    deallocate(a)
    deallocate(b)
